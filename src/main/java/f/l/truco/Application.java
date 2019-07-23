@@ -24,8 +24,5 @@ public class Application implements CommandLineRunner {
     public void run(String... args) throws Exception {
         stateMachine.getState().getId();
         Map<Object, Object> variables = stateMachine.getExtendedState().getVariables();
-
-        stateMachine.sendEvent(Events.PLAYER_2_PLAY_CARD);
-
     }
 }

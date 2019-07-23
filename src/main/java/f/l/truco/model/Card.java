@@ -47,6 +47,14 @@ public final class Card implements Comparable<Card> {
     }
 
     @Override
+    public String toString() {
+        return "Card{" +
+                "suit=" + suit +
+                ", number=" + number +
+                '}';
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(suit, number);
     }
