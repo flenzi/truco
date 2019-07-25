@@ -1,6 +1,6 @@
 package f.l.truco.machine;
 
-public enum States {
+public enum State {
     INITIAL,
     PLAYER_1_TURN_1,
     PLAYER_2_TURN_1,

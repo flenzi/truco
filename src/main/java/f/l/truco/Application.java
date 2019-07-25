@@ -1,20 +1,19 @@
 package f.l.truco;
 
-import f.l.truco.machine.Events;
-import f.l.truco.machine.States;
+import f.l.truco.machine.Event;
+import f.l.truco.machine.State;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.statemachine.StateMachine;
 
-import java.util.Map;
-
 @SpringBootApplication
 public class Application implements CommandLineRunner {
 
     @Autowired
-    private StateMachine<States, Events> stateMachine;
+    private StateMachine<State, Event> stateMachine;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

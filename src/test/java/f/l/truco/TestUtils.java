@@ -2,7 +2,6 @@ package f.l.truco;
 
 import f.l.truco.model.Card;
 import f.l.truco.model.Suit;
-
 import java.util.ArrayList;
 import java.util.List;
 

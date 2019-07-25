@@ -1,6 +1,6 @@
 package f.l.truco.machine;
 
-public enum Events {
+public enum Event {
     PLAYER_1_PLAY_CARD_1,
     PLAYER_2_PLAY_CARD_1,
     PLAYER_1_PLAY_CARD_2,

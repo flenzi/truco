@@ -1,9 +1,11 @@
 package f.l.truco.machine;
 
-public enum ExtendedStateVariables {
+public enum ExtendedStateVariable {
     TURN,
-    PLAYER_1_CARDS,
-    PLAYER_2_CARDS,
+    PLAYER_1_CARDS_ROUND,
+    PLAYER_1_CARDS_CURRENT,
+    PLAYER_2_CARDS_ROUND,
+    PLAYER_2_CARDS_CURRENT,
     TURN_NUMBER,
     DRAW_1,
     DRAW_2,

@@ -1,6 +1,6 @@
 package f.l.truco.model;
 
-public enum Players {
+public enum Player {
     PLAYER_1,
     PLAYER_2
 }

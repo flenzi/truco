@@ -1,11 +1,11 @@
 package f.l.truco.model;
 
-import java.util.Objects;
-
 import static f.l.truco.model.Suit.CLUBS;
 import static f.l.truco.model.Suit.CUPS;
 import static f.l.truco.model.Suit.GOLDS;
 import static f.l.truco.model.Suit.SWORDS;
+
+import java.util.Objects;
 
 public final class Card implements Comparable<Card> {
 

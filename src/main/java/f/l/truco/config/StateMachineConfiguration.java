@@ -1,9 +1,35 @@
 package f.l.truco.config;
 
-import f.l.truco.machine.Events;
-import f.l.truco.machine.States;
+import static f.l.truco.machine.ExtendedStateVariable.CARDS_PLAYED;
+import static f.l.truco.machine.ExtendedStateVariable.DRAW_1;
+import static f.l.truco.machine.ExtendedStateVariable.DRAW_2;
+import static f.l.truco.machine.ExtendedStateVariable.DRAW_3;
+import static f.l.truco.machine.ExtendedStateVariable.GAME_ENDED;
+import static f.l.truco.machine.ExtendedStateVariable.HAND;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_1_CARDS_CURRENT;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_1_CARDS_ROUND;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_1_SCORE;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_2_CARDS_CURRENT;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_2_CARDS_ROUND;
+import static f.l.truco.machine.ExtendedStateVariable.PLAYER_2_SCORE;
+import static f.l.truco.machine.ExtendedStateVariable.ROUND_1_WINNER;
+import static f.l.truco.machine.ExtendedStateVariable.ROUND_2_WINNER;
+import static f.l.truco.machine.ExtendedStateVariable.ROUND_3_WINNER;
+import static f.l.truco.machine.ExtendedStateVariable.TURN;
+import static f.l.truco.machine.ExtendedStateVariable.TURN_NUMBER;
+import static f.l.truco.machine.ExtendedStateVariable.WINNER;
+import static f.l.truco.model.Player.PLAYER_1;
+import static f.l.truco.model.Player.PLAYER_2;
+
+import f.l.truco.machine.Event;
+import f.l.truco.machine.State;
 import f.l.truco.model.Card;
-import f.l.truco.model.Players;
+import f.l.truco.model.Player;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,66 +43,42 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 import org.springframework.statemachine.guard.Guard;
 import org.springframework.statemachine.listener.StateMachineListener;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static f.l.truco.machine.ExtendedStateVariables.CARDS_PLAYED;
-import static f.l.truco.machine.ExtendedStateVariables.DRAW_1;
-import static f.l.truco.machine.ExtendedStateVariables.DRAW_2;
-import static f.l.truco.machine.ExtendedStateVariables.DRAW_3;
-import static f.l.truco.machine.ExtendedStateVariables.GAME_ENDED;
-import static f.l.truco.machine.ExtendedStateVariables.HAND;
-import static f.l.truco.machine.ExtendedStateVariables.PLAYER_1_CARDS;
-import static f.l.truco.machine.ExtendedStateVariables.PLAYER_2_CARDS;
-import static f.l.truco.machine.ExtendedStateVariables.ROUND_1_WINNER;
-import static f.l.truco.machine.ExtendedStateVariables.ROUND_2_WINNER;
-import static f.l.truco.machine.ExtendedStateVariables.ROUND_3_WINNER;
-import static f.l.truco.machine.ExtendedStateVariables.TURN;
-import static f.l.truco.machine.ExtendedStateVariables.TURN_NUMBER;
-import static f.l.truco.machine.ExtendedStateVariables.WINNER;
-import static f.l.truco.model.Players.PLAYER_1;
-import static f.l.truco.model.Players.PLAYER_2;
-
 @Configuration
 @EnableStateMachine
-public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter<States, Events> {
+public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter<State, Event> {
 
     @Autowired
-    private Guard<States, Events> player1PlayCard;
+    private Guard<State, Event> player1PlayCard;
 
     @Autowired
-    private Guard<States, Events> player2PlayCard;
+    private Guard<State, Event> player2PlayCard;
 
     @Autowired
-    private StateMachineListener<States, Events> stateChangeListener;
+    private StateMachineListener<State, Event> stateChangeListener;
 
     @Override
-    public void configure(StateMachineConfigurationConfigurer<States, Events> config)
+    public void configure(StateMachineConfigurationConfigurer<State, Event> config)
             throws Exception {
-        config.withConfiguration()
-                .autoStartup(true)
-                .listener(stateChangeListener);
+        config.withConfiguration().autoStartup(true).listener(stateChangeListener);
     }
 
     @Override
-    public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
-        states.withStates()
-                .initial(States.INITIAL)
-                .choice(States.COMPUTE_1)
-                .choice(States.COMPUTE_2)
-                .choice(States.COMPUTE_3)
-                .choice(States.COMPUTE_NEXT_PLAYER_TURN_2)
-                .choice(States.COMPUTE_NEXT_PLAYER_TURN_3)
-                .choice(States.COMPUTE_WINNER)
-                .end(States.FINAL)
-                .states(EnumSet.allOf(States.class));
+    public void configure(StateMachineStateConfigurer<State, Event> states) throws Exception {
+        states
+                .withStates()
+                .initial(State.INITIAL)
+                .choice(State.COMPUTE_1)
+                .choice(State.COMPUTE_2)
+                .choice(State.COMPUTE_3)
+                .choice(State.COMPUTE_NEXT_PLAYER_TURN_2)
+                .choice(State.COMPUTE_NEXT_PLAYER_TURN_3)
+                .choice(State.COMPUTE_WINNER)
+                .end(State.FINAL)
+                .states(EnumSet.allOf(State.class));
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
+    public void configure(StateMachineTransitionConfigurer<State, Event> transitions)
             throws Exception {
         setInitialTransitions(transitions);
         setPlayCardTransitionsRound1(transitions);
@@ -84,36 +86,37 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
         setPlayCardTransitionsRound3(transitions);
     }
 
-    private void setInitialTransitions(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
+    private void setInitialTransitions(StateMachineTransitionConfigurer<State, Event> transitions)
+            throws Exception {
         transitions
                 // Initialize
                 .withExternal()
-                .source(States.INITIAL)
-                .target(States.PLAYER_1_TURN_1)
-                .event(Events.INITIALIZE_TO_PLAYER_1_TURN)
+                .source(State.INITIAL)
+                .target(State.PLAYER_1_TURN_1)
+                .event(Event.INITIALIZE_TO_PLAYER_1_TURN)
                 .action(initialSetAction())
-
                 .and()
                 .withExternal()
-                .source(States.INITIAL)
-                .target(States.PLAYER_2_TURN_1)
-                .event(Events.INITIALIZE_TO_PLAYER_2_TURN)
+                .source(State.INITIAL)
+                .target(State.PLAYER_2_TURN_1)
+                .event(Event.INITIALIZE_TO_PLAYER_2_TURN)
                 .action(initialSetAction());
     }
 
-    private void setPlayCardTransitionsRound1(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
+    private void setPlayCardTransitionsRound1(
+            StateMachineTransitionConfigurer<State, Event> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(States.PLAYER_1_TURN_1)
-                .target(States.COMPUTE_1)
-                .event(Events.PLAYER_1_PLAY_CARD_1)
+                .source(State.PLAYER_1_TURN_1)
+                .target(State.COMPUTE_1)
+                .event(Event.PLAYER_1_PLAY_CARD_1)
                 .guard(player1PlayCard)
 
                 .and()
                 .withExternal()
-                .source(States.PLAYER_2_TURN_1)
-                .target(States.COMPUTE_1)
-                .event(Events.PLAYER_2_PLAY_CARD_1)
+                .source(State.PLAYER_2_TURN_1)
+                .target(State.COMPUTE_1)
+                .event(Event.PLAYER_2_PLAY_CARD_1)
                 .guard(player2PlayCard)
 
                 // Calculate next turn based on card played.
@@ -121,103 +124,110 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
                 // and next state(or final) is decided in another choice
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_1)
-                .first(States.PLAYER_1_TURN_1, player1NextTurnOdd())
-                .then(States.PLAYER_2_TURN_1, player2NextTurnOdd())
-                .last(States.COMPUTE_NEXT_PLAYER_TURN_2)
+                .source(State.COMPUTE_1)
+                .first(State.PLAYER_1_TURN_1, player1NextTurnOdd())
+                .then(State.PLAYER_2_TURN_1, player2NextTurnOdd())
+                .last(State.COMPUTE_NEXT_PLAYER_TURN_2)
 
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_NEXT_PLAYER_TURN_2)
-                .first(States.PLAYER_1_TURN_2, player1NextTurn2())
-                .then(States.PLAYER_2_TURN_2, player2NextTurn2())
-                .last(States.NONE);
+                .source(State.COMPUTE_NEXT_PLAYER_TURN_2)
+                .first(State.PLAYER_1_TURN_2, player1NextTurn2())
+                .then(State.PLAYER_2_TURN_2, player2NextTurn2())
+                .last(State.NONE);
     }
 
-    private void setPlayCardTransitionsRound2(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
+    private void setPlayCardTransitionsRound2(
+            StateMachineTransitionConfigurer<State, Event> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(States.PLAYER_1_TURN_2)
-                .target(States.COMPUTE_2)
-                .event(Events.PLAYER_1_PLAY_CARD_2)
+                .source(State.PLAYER_1_TURN_2)
+                .target(State.COMPUTE_2)
+                .event(Event.PLAYER_1_PLAY_CARD_2)
                 .guard(player1PlayCard)
 
                 .and()
                 .withExternal()
-                .source(States.PLAYER_2_TURN_2)
-                .target(States.COMPUTE_2)
-                .event(Events.PLAYER_2_PLAY_CARD_2)
+                .source(State.PLAYER_2_TURN_2)
+                .target(State.COMPUTE_2)
+                .event(Event.PLAYER_2_PLAY_CARD_2)
                 .guard(player2PlayCard)
 
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_2)
-                .first(States.PLAYER_1_TURN_2, player1NextTurnOdd())
-                .then(States.PLAYER_2_TURN_2, player2NextTurnOdd())
-                .last(States.COMPUTE_NEXT_PLAYER_TURN_3)
+                .source(State.COMPUTE_2)
+                .first(State.PLAYER_1_TURN_2, player1NextTurnOdd())
+                .then(State.PLAYER_2_TURN_2, player2NextTurnOdd())
+                .last(State.COMPUTE_NEXT_PLAYER_TURN_3)
 
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_NEXT_PLAYER_TURN_3)
-                .first(States.PLAYER_1_TURN_3, player1NextTurn3())
-                .then(States.PLAYER_2_TURN_3, player2NextTurn3())
-                .last(States.FINAL);
+                .source(State.COMPUTE_NEXT_PLAYER_TURN_3)
+                .first(State.PLAYER_1_TURN_3, player1NextTurn3())
+                .then(State.PLAYER_2_TURN_3, player2NextTurn3())
+                .last(State.FINAL);
     }
 
-    private void setPlayCardTransitionsRound3(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
+    private void setPlayCardTransitionsRound3(
+            StateMachineTransitionConfigurer<State, Event> transitions) throws Exception {
         transitions
                 .withExternal()
-                .source(States.PLAYER_1_TURN_3)
-                .target(States.COMPUTE_3)
-                .event(Events.PLAYER_1_PLAY_CARD_3)
+                .source(State.PLAYER_1_TURN_3)
+                .target(State.COMPUTE_3)
+                .event(Event.PLAYER_1_PLAY_CARD_3)
                 .guard(player1PlayCard)
 
                 .and()
                 .withExternal()
-                .source(States.PLAYER_2_TURN_3)
-                .target(States.COMPUTE_3)
-                .event(Events.PLAYER_2_PLAY_CARD_3)
+                .source(State.PLAYER_2_TURN_3)
+                .target(State.COMPUTE_3)
+                .event(Event.PLAYER_2_PLAY_CARD_3)
                 .guard(player2PlayCard)
 
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_3)
-                .first(States.PLAYER_1_TURN_3, player1NextTurnOdd())
-                .then(States.PLAYER_2_TURN_3, player2NextTurnOdd())
-                .last(States.COMPUTE_WINNER)
+                .source(State.COMPUTE_3)
+                .first(State.PLAYER_1_TURN_3, player1NextTurnOdd())
+                .then(State.PLAYER_2_TURN_3, player2NextTurnOdd())
+                .last(State.COMPUTE_WINNER)
 
                 .and()
                 .withChoice()
-                .source(States.COMPUTE_WINNER)
-                .first(States.FINAL, player1WinTurn3())
-                .then(States.FINAL, player2WinTurn3())
-                .last(States.FINAL);
+                .source(State.COMPUTE_WINNER)
+                .first(State.FINAL, player1WinTurn3())
+                .then(State.FINAL, player2WinTurn3())
+                .last(State.NONE);
     }
 
     /**
      * Create players and distribute cards
      */
     @Bean
-    public Action<States, Events> initialSetAction() {
-        return new Action<States, Events>() {
+    public Action<State, Event> initialSetAction() {
+        return new Action<State, Event>() {
             @Override
-            public void execute(StateContext<States, Events> context) {
-                List<Card> cards = getCards();
-                context.getExtendedState().getVariables().put(PLAYER_1_CARDS, new ArrayList<>(cards.subList(0, 3)));
-                context.getExtendedState().getVariables().put(PLAYER_2_CARDS, new ArrayList<>(cards.subList(3, 6)));
+            public void execute(StateContext<State, Event> context) {
+                List<Card> cards = getRoundCards();
+                context.getExtendedState().getVariables().put(PLAYER_1_CARDS_CURRENT, new ArrayList<>(cards.subList(0, 3)));
+                context.getExtendedState().getVariables().put(PLAYER_1_CARDS_ROUND, new ArrayList<>(cards.subList(0, 3)));
+                context.getExtendedState().getVariables().put(PLAYER_2_CARDS_CURRENT, new ArrayList<>(cards.subList(3, 6)));
+                context.getExtendedState().getVariables().put(PLAYER_2_CARDS_ROUND, new ArrayList<>(cards.subList(3, 6)));
 
-                if (context.getEvent() == Events.INITIALIZE_TO_PLAYER_1_TURN) {
+                if (context.getEvent() == Event.INITIALIZE_TO_PLAYER_1_TURN) {
                     context.getExtendedState().getVariables().put(TURN, PLAYER_1);
                     context.getExtendedState().getVariables().put(HAND, PLAYER_1);
-                } else if (context.getEvent() == Events.INITIALIZE_TO_PLAYER_2_TURN) {
+                } else if (context.getEvent() == Event.INITIALIZE_TO_PLAYER_2_TURN) {
                     context.getExtendedState().getVariables().put(TURN, PLAYER_2);
                     context.getExtendedState().getVariables().put(HAND, PLAYER_2);
                 }
+
+                context.getExtendedState().getVariables().put(PLAYER_1_SCORE, 0);
+                context.getExtendedState().getVariables().put(PLAYER_2_SCORE, 0);
                 context.getExtendedState().getVariables().put(TURN_NUMBER, 1);
                 context.getExtendedState().getVariables().put(CARDS_PLAYED, new ArrayList<>(6));
             }
 
-            private List<Card> getCards() {
+            private List<Card> getRoundCards() {
                 Set<Card> cards = new HashSet<>(6);
                 while (cards.size() < 6) {
                     cards.add(Card.generateRandomCard());
@@ -228,19 +238,19 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
     }
 
     @Bean
-    public Guard<States, Events> player1NextTurnOdd() {
+    public Guard<State, Event> player1NextTurnOdd() {
         return playerNextTurnOdd(PLAYER_1);
     }
 
     @Bean
-    public Guard<States, Events> player2NextTurnOdd() {
+    public Guard<State, Event> player2NextTurnOdd() {
         return playerNextTurnOdd(PLAYER_2);
     }
 
-    private Guard<States, Events> playerNextTurnOdd(Players player) {
-        return new Guard<States, Events>() {
+    private Guard<State, Event> playerNextTurnOdd(Player player) {
+        return new Guard<State, Event>() {
             @Override
-            public boolean evaluate(StateContext<States, Events> context) {
+            public boolean evaluate(StateContext<State, Event> context) {
                 int turnNumber = (int) context.getExtendedState().getVariables().get(TURN_NUMBER);
                 if (player != context.getExtendedState().getVariables().get(TURN) && turnNumber % 2 == 1) {
                     context.getExtendedState().getVariables().put(TURN, player);
@@ -252,18 +262,18 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
         };
     }
 
-    //Finish round 1, next player calculation
+    // Finish round 1, next player calculation
     @Bean
-    public Guard<States, Events> player1NextTurn2() {
+    public Guard<State, Event> player1NextTurn2() {
         return playerNextTurn2(PLAYER_1);
     }
 
     @Bean
-    public Guard<States, Events> player2NextTurn2() {
+    public Guard<State, Event> player2NextTurn2() {
         return playerNextTurn2(PLAYER_2);
     }
 
-    private Guard<States, Events> playerNextTurn2(Players player) {
+    private Guard<State, Event> playerNextTurn2(Player player) {
         return context -> {
             List<Card> cards = (ArrayList<Card>) context.getExtendedState().getVariables().get(CARDS_PLAYED);
             int turnNumber = (int) context.getExtendedState().getVariables().get(TURN_NUMBER);
@@ -274,8 +284,8 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
                 context.getExtendedState().getVariables().put(TURN, player);
                 context.getExtendedState().getVariables().put(TURN_NUMBER, ++turnNumber);
                 return true;
-            } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN)) ||
-                    resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
+            } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN))
+                    || resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
                 context.getExtendedState().getVariables().put(TURN, player);
                 context.getExtendedState().getVariables().put(ROUND_1_WINNER, player);
                 context.getExtendedState().getVariables().put(TURN_NUMBER, ++turnNumber);
@@ -286,18 +296,18 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
         };
     }
 
-    //Finish round 2, next player calculation
+    // Finish round 2, next player calculation
     @Bean
-    public Guard<States, Events> player1NextTurn3() {
+    public Guard<State, Event> player1NextTurn3() {
         return playerNextTurn3(PLAYER_1);
     }
 
     @Bean
-    public Guard<States, Events> player2NextTurn3() {
+    public Guard<State, Event> player2NextTurn3() {
         return playerNextTurn3(PLAYER_2);
     }
 
-    private Guard<States, Events> playerNextTurn3(Players player) {
+    private Guard<State, Event> playerNextTurn3(Player player) {
         return context -> {
             if (!(boolean) context.getExtendedState().getVariables().getOrDefault(GAME_ENDED, false)) {
                 List<Card> cards = (ArrayList<Card>) context.getExtendedState().getVariables().get(CARDS_PLAYED);
@@ -306,34 +316,35 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
 
                 if (resultStage == 0) {
                     context.getExtendedState().getVariables().put(DRAW_2, true);
-                    if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false) &&
-                            player == context.getExtendedState().getVariables().get(HAND)) {
+                    if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false)
+                            && player == context.getExtendedState().getVariables().get(HAND)) {
                         context.getExtendedState().getVariables().put(TURN, player);
                         context.getExtendedState().getVariables().put(TURN_NUMBER, ++turnNumber);
                         return true;
                     } else if (!(boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false)) {
-                        //Winner found
+                        // Winner found
                         context.getExtendedState().getVariables().put(GAME_ENDED, true);
-                        context.getExtendedState().getVariables().put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
+                        context.getExtendedState().getVariables()
+                                .put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
                         calculateScores(context);
                         return false;
                     }
-                } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN)) ||
-                        resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
+                } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN))
+                        || resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
 
                     context.getExtendedState().getVariables().put(ROUND_2_WINNER, player);
 
                     if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false)) {
-                        //Winner found
+                        // Winner found
                         context.getExtendedState().getVariables().put(GAME_ENDED, true);
                         context.getExtendedState().getVariables().put(WINNER, player);
                         calculateScores(context);
                         return false;
                     }
 
-                    if (context.getExtendedState().getVariables().get(ROUND_1_WINNER)
-                            == context.getExtendedState().getVariables().get(ROUND_2_WINNER)) {
-                        //Winner found
+                    if (context.getExtendedState().getVariables().get(ROUND_1_WINNER) == context.getExtendedState().getVariables()
+                            .get(ROUND_2_WINNER)) {
+                        // Winner found
                         context.getExtendedState().getVariables().put(GAME_ENDED, true);
                         context.getExtendedState().getVariables().put(WINNER, player);
                         calculateScores(context);
@@ -350,55 +361,59 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
         };
     }
 
-    //Finish round 3, winner calculation
+    // Finish round 3, winner calculation
     @Bean
-    public Guard<States, Events> player1WinTurn3() {
+    public Guard<State, Event> player1WinTurn3() {
         return playerWinTurn3(PLAYER_1);
     }
 
     @Bean
-    public Guard<States, Events> player2WinTurn3() {
+    public Guard<State, Event> player2WinTurn3() {
         return playerWinTurn3(PLAYER_2);
     }
 
-    private Guard<States, Events> playerWinTurn3(Players player) {
-        return new Guard<States, Events>() {
+    private Guard<State, Event> playerWinTurn3(Player player) {
+        return new Guard<State, Event>() {
             @Override
-            public boolean evaluate(StateContext<States, Events> context) {
+            public boolean evaluate(StateContext<State, Event> context) {
                 if (!(boolean) context.getExtendedState().getVariables().getOrDefault(GAME_ENDED, false)) {
                     List<Card> cards = (ArrayList<Card>) context.getExtendedState().getVariables().get(CARDS_PLAYED);
                     int resultStage = cards.get(cards.size() - 2).compareTo(cards.get(cards.size() - 1));
 
                     if (resultStage == 0) {
-                        if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false)
-                                && (boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_2, false)) {
+                        if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false) && (boolean) context
+                                .getExtendedState().getVariables().getOrDefault(DRAW_2, false)) {
                             context.getExtendedState().getVariables().put(WINNER, context.getExtendedState().getVariables().get(HAND));
                         } else {
-                            context.getExtendedState().getVariables().put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
+                            context.getExtendedState().getVariables()
+                                    .put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
                         }
                         context.getExtendedState().getVariables().put(DRAW_3, true);
                         context.getExtendedState().getVariables().put(GAME_ENDED, true);
                         calculateScores(context);
                         return true;
-                    } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN)) ||
-                            resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
+                    } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN))
+                            || resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
                         context.getExtendedState().getVariables().put(ROUND_3_WINNER, player);
                         context.getExtendedState().getVariables().put(WINNER, player);
                         context.getExtendedState().getVariables().put(GAME_ENDED, true);
                         calculateScores(context);
-                        context.getExtendedState().getVariables().put(WINNER, null);
                         return true;
                     }
                 }
                 return false;
             }
         };
-
     }
 
-    //TODO
-    private void calculateScores(StateContext<States, Events> context) {
-        //ExtendedStateVariables.PLAYER_1_SCORE
-        //ExtendedStateVariables.PLAYER_2_SCORE
+    private void calculateScores(StateContext<State, Event> context) {
+        Player player = (Player) context.getExtendedState().getVariables().get(WINNER);
+        if (player == PLAYER_1) {
+            int currentScore = (int) context.getExtendedState().getVariables().getOrDefault(PLAYER_1_SCORE, 0);
+            context.getExtendedState().getVariables().put(PLAYER_1_SCORE, ++currentScore);
+        } else {
+            int currentScore = (int) context.getExtendedState().getVariables().getOrDefault(PLAYER_2_SCORE, 0);
+            context.getExtendedState().getVariables().put(PLAYER_2_SCORE, ++currentScore);
+        }
     }
 }

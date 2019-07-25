@@ -1,5 +1,5 @@
 package f.l.truco.machine;
 
-public enum MessageHeaders {
+public enum MessageHeader {
     PLAYED_CARD
 }
