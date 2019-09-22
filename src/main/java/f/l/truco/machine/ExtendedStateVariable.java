@@ -21,5 +21,9 @@ public enum ExtendedStateVariable {
     PLAYER_1_SCORE,
     PLAYER_2_SCORE,
 
+    TRUCO_ASKED,
+    RE_TRUCO_ASKED,
+    VALE4_ASKED,
+
     GAME_ENDED
 }

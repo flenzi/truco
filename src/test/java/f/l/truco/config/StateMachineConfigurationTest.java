@@ -2,6 +2,7 @@ package f.l.truco.config;
 
 import f.l.truco.machine.Event;
 import f.l.truco.machine.State;
+import f.l.truco.model.Card;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -9,20 +10,14 @@ import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static f.l.truco.machine.Event.INITIALIZE_TEST;
-import static f.l.truco.machine.ExtendedStateVariable.CARDS_PLAYED;
-import static f.l.truco.machine.ExtendedStateVariable.HAND;
-import static f.l.truco.machine.ExtendedStateVariable.PLAYER_1_CARDS_CURRENT;
-import static f.l.truco.machine.ExtendedStateVariable.PLAYER_1_SCORE;
-import static f.l.truco.machine.ExtendedStateVariable.PLAYER_2_CARDS_CURRENT;
-import static f.l.truco.machine.ExtendedStateVariable.PLAYER_2_SCORE;
-import static f.l.truco.machine.ExtendedStateVariable.TURN;
-import static f.l.truco.machine.ExtendedStateVariable.TURN_NUMBER;
+import static f.l.truco.machine.ExtendedStateVariable.*;
 import static f.l.truco.model.Player.PLAYER_1;
 
 @Configuration
-@Import({StateMachineGuardValidationConfiguration.class, StateMachineListenersConfiguration.class})
+@Import({StateMachineGuardValidationConfiguration.class, StateMachineListenersConfiguration.class, StateMachineTrucoConfiguration.class})
 public class StateMachineConfigurationTest extends StateMachineConfiguration {
 
     @Override
@@ -43,10 +38,10 @@ public class StateMachineConfigurationTest extends StateMachineConfiguration {
     public Action<State, Event> initialSetActionTest() {
         return context -> {
             context.getExtendedState().getVariables()
-                    .put(PLAYER_1_CARDS_CURRENT, context.getMessage().getHeaders().get("player1cards"));
+                    .put(PLAYER_1_CARDS_CURRENT, new ArrayList<>((List<Card>) context.getMessage().getHeaders().get("player1cards")));
 
             context.getExtendedState().getVariables()
-                    .put(PLAYER_2_CARDS_CURRENT, context.getMessage().getHeaders().get("player2cards"));
+                    .put(PLAYER_2_CARDS_CURRENT, new ArrayList<>((List<Card>) context.getMessage().getHeaders().get("player2cards")));
 
             context.getExtendedState().getVariables().put(PLAYER_1_SCORE, 0);
             context.getExtendedState().getVariables().put(PLAYER_2_SCORE, 0);
