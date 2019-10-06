@@ -17,7 +17,9 @@ import static f.l.truco.machine.ExtendedStateVariable.*;
 import static f.l.truco.model.Player.PLAYER_1;
 
 @Configuration
-@Import({StateMachineGuardValidationConfiguration.class, StateMachineListenersConfiguration.class, StateMachineTrucoConfiguration.class})
+@Import({StateMachineGuardValidationConfiguration.class, StateMachineListenersConfiguration.class, StateMachineTrucoConfiguration.class,
+        StateMachineRoundsConfiguration.class
+})
 public class StateMachineConfigurationTest extends StateMachineConfiguration {
 
     @Override
