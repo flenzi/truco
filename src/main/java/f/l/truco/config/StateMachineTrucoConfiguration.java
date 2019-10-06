@@ -4,7 +4,6 @@ import f.l.truco.machine.Event;
 import f.l.truco.machine.State;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 import org.springframework.statemachine.guard.Guard;
 
@@ -18,79 +17,55 @@ public class StateMachineTrucoConfiguration {
 
     @Bean
     public Guard<State, Event> trucoGuard() {
-        return new Guard<State, Event>() {
-            @Override
-            public boolean evaluate(StateContext<State, Event> context) {
-                return null == context.getExtendedState().getVariables().get(TRUCO_ASKED);
-            }
-        };
+        return context -> null == context.getExtendedState().getVariables().get(TRUCO_ASKED);
     }
 
     @Bean
     public Guard<State, Event> reTrucoGuard() {
-        return new Guard<State, Event>() {
-            @Override
-            public boolean evaluate(StateContext<State, Event> context) {
-                return null != context.getExtendedState().getVariables().get(TRUCO_ASKED) &&
-                        null == context.getExtendedState().getVariables().get(RE_TRUCO_ASKED)
-                        && ((context.getExtendedState().getVariables().get(TRUCO_ASKED) == PLAYER_1 && context.getEvent() == PLAYER_2_RE_TRUCO) ||
-                        (context.getExtendedState().getVariables().get(TRUCO_ASKED) == PLAYER_2 && context.getEvent() == PLAYER_1_RE_TRUCO));
-            }
-        };
+        return context -> null != context.getExtendedState().getVariables().get(TRUCO_ASKED) &&
+                null == context.getExtendedState().getVariables().get(RE_TRUCO_ASKED)
+                && ((context.getExtendedState().getVariables().get(TRUCO_ASKED) == PLAYER_1 && context.getEvent() == PLAYER_2_RE_TRUCO) ||
+                (context.getExtendedState().getVariables().get(TRUCO_ASKED) == PLAYER_2 && context.getEvent() == PLAYER_1_RE_TRUCO));
     }
 
     @Bean
     public Guard<State, Event> vale4Guard() {
-        return new Guard<State, Event>() {
-            @Override
-            public boolean evaluate(StateContext<State, Event> context) {
-                return null != context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) &&
-                        null == context.getExtendedState().getVariables().get(VALE4_ASKED)
-                        && ((context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) == PLAYER_1 && context.getEvent() == PLAYER_2_VALE_4) ||
-                        (context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) == PLAYER_2 && context.getEvent() == PLAYER_1_VALE_4));
-            }
-        };
+        return context -> null != context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) &&
+                null == context.getExtendedState().getVariables().get(VALE4_ASKED)
+                && ((context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) == PLAYER_1 && context.getEvent() == PLAYER_2_VALE_4) ||
+                (context.getExtendedState().getVariables().get(RE_TRUCO_ASKED) == PLAYER_2 && context.getEvent() == PLAYER_1_VALE_4));
     }
 
 
     @Bean
     public Action<State, Event> trucoAction() {
-        return new Action<State, Event>() {
-            @Override
-            public void execute(StateContext<State, Event> context) {
-                if (Event.PLAYER_1_TRUCO == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(TRUCO_ASKED, PLAYER_1);
-                } else if (Event.PLAYER_2_TRUCO == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(TRUCO_ASKED, PLAYER_2);
-                }
+        return context -> {
+            if (Event.PLAYER_1_TRUCO == context.getEvent()) {
+                context.getExtendedState().getVariables().put(TRUCO_ASKED, PLAYER_1);
+            } else if (Event.PLAYER_2_TRUCO == context.getEvent()) {
+                context.getExtendedState().getVariables().put(TRUCO_ASKED, PLAYER_2);
             }
         };
     }
 
     @Bean
     public Action<State, Event> reTrucoAction() {
-        return new Action<State, Event>() {
-            @Override
-            public void execute(StateContext<State, Event> context) {
-                if (Event.PLAYER_1_RE_TRUCO == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(RE_TRUCO_ASKED, PLAYER_1);
-                } else if (Event.PLAYER_2_RE_TRUCO == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(RE_TRUCO_ASKED, PLAYER_2);
-                }
+        return context -> {
+            if (Event.PLAYER_1_RE_TRUCO == context.getEvent()) {
+                context.getExtendedState().getVariables().put(RE_TRUCO_ASKED, PLAYER_1);
+            } else if (Event.PLAYER_2_RE_TRUCO == context.getEvent()) {
+                context.getExtendedState().getVariables().put(RE_TRUCO_ASKED, PLAYER_2);
             }
         };
     }
 
     @Bean
     public Action<State, Event> vale4Action() {
-        return new Action<State, Event>() {
-            @Override
-            public void execute(StateContext<State, Event> context) {
-                if (Event.PLAYER_1_VALE_4 == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(VALE4_ASKED, PLAYER_1);
-                } else if (Event.PLAYER_2_VALE_4 == context.getEvent()) {
-                    context.getExtendedState().getVariables().put(VALE4_ASKED, PLAYER_2);
-                }
+        return context -> {
+            if (Event.PLAYER_1_VALE_4 == context.getEvent()) {
+                context.getExtendedState().getVariables().put(VALE4_ASKED, PLAYER_1);
+            } else if (Event.PLAYER_2_VALE_4 == context.getEvent()) {
+                context.getExtendedState().getVariables().put(VALE4_ASKED, PLAYER_2);
             }
         };
     }

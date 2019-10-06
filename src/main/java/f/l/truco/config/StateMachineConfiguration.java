@@ -444,17 +444,14 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
     }
 
     private Guard<State, Event> playerNextTurnOdd(Player player) {
-        return new Guard<State, Event>() {
-            @Override
-            public boolean evaluate(StateContext<State, Event> context) {
-                int turnNumber = (int) context.getExtendedState().getVariables().get(TURN_NUMBER);
-                if (player != context.getExtendedState().getVariables().get(TURN) && turnNumber % 2 == 1) {
-                    context.getExtendedState().getVariables().put(TURN, player);
-                    context.getExtendedState().getVariables().put(TURN_NUMBER, ++turnNumber);
-                    return true;
-                }
-                return false;
+        return context -> {
+            int turnNumber = (int) context.getExtendedState().getVariables().get(TURN_NUMBER);
+            if (player != context.getExtendedState().getVariables().get(TURN) && turnNumber % 2 == 1) {
+                context.getExtendedState().getVariables().put(TURN, player);
+                context.getExtendedState().getVariables().put(TURN_NUMBER, ++turnNumber);
+                return true;
             }
+            return false;
         };
     }
 
@@ -569,36 +566,33 @@ public class StateMachineConfiguration extends EnumStateMachineConfigurerAdapter
     }
 
     private Guard<State, Event> playerWinTurn3(Player player) {
-        return new Guard<State, Event>() {
-            @Override
-            public boolean evaluate(StateContext<State, Event> context) {
-                if (!(boolean) context.getExtendedState().getVariables().getOrDefault(GAME_ENDED, false)) {
-                    List<Card> cards = (ArrayList<Card>) context.getExtendedState().getVariables().get(CARDS_PLAYED);
-                    int resultStage = cards.get(cards.size() - 2).compareTo(cards.get(cards.size() - 1));
+        return context -> {
+            if (!(boolean) context.getExtendedState().getVariables().getOrDefault(GAME_ENDED, false)) {
+                List<Card> cards = (ArrayList<Card>) context.getExtendedState().getVariables().get(CARDS_PLAYED);
+                int resultStage = cards.get(cards.size() - 2).compareTo(cards.get(cards.size() - 1));
 
-                    if (resultStage == 0) {
-                        if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false) && (boolean) context
-                                .getExtendedState().getVariables().getOrDefault(DRAW_2, false)) {
-                            context.getExtendedState().getVariables().put(WINNER, context.getExtendedState().getVariables().get(HAND));
-                        } else {
-                            context.getExtendedState().getVariables()
-                                    .put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
-                        }
-                        context.getExtendedState().getVariables().put(DRAW_3, true);
-                        context.getExtendedState().getVariables().put(GAME_ENDED, true);
-                        calculateScores(context);
-                        return true;
-                    } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN))
-                            || resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
-                        context.getExtendedState().getVariables().put(ROUND_3_WINNER, player);
-                        context.getExtendedState().getVariables().put(WINNER, player);
-                        context.getExtendedState().getVariables().put(GAME_ENDED, true);
-                        calculateScores(context);
-                        return true;
+                if (resultStage == 0) {
+                    if ((boolean) context.getExtendedState().getVariables().getOrDefault(DRAW_1, false) && (boolean) context
+                            .getExtendedState().getVariables().getOrDefault(DRAW_2, false)) {
+                        context.getExtendedState().getVariables().put(WINNER, context.getExtendedState().getVariables().get(HAND));
+                    } else {
+                        context.getExtendedState().getVariables()
+                                .put(WINNER, context.getExtendedState().getVariables().get(ROUND_1_WINNER));
                     }
+                    context.getExtendedState().getVariables().put(DRAW_3, true);
+                    context.getExtendedState().getVariables().put(GAME_ENDED, true);
+                    calculateScores(context);
+                    return true;
+                } else if ((resultStage == 1 && player != context.getExtendedState().getVariables().get(TURN))
+                        || resultStage == -1 && player == context.getExtendedState().getVariables().get(TURN)) {
+                    context.getExtendedState().getVariables().put(ROUND_3_WINNER, player);
+                    context.getExtendedState().getVariables().put(WINNER, player);
+                    context.getExtendedState().getVariables().put(GAME_ENDED, true);
+                    calculateScores(context);
+                    return true;
                 }
-                return false;
             }
+            return false;
         };
     }
 
